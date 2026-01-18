@@ -1,0 +1,31 @@
+.app {
+  min-height: 100vh;
+  background-color: var(--secondary);
+  transition: background-color 0.3s ease;
+}
+
+main {
+  padding-top: 80px;
+  min-height: calc(100vh - 200px);
+}
+
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--secondary);
+  color: var(--light);
+}
+
+.loading-screen .loading-spinner {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 20px;
+}
+
+.loading-screen p {
+  font-size: 1.2rem;
+  color: var(--gray);
+}
