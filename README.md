@@ -7,7 +7,7 @@
 Una aplicación web moderna para explorar héroes de Mobile Legends: Bang Bang, construida con React + Vite.
 
 ## ✨ Demo
-👉 **[Ver Demo en Vivo](https://tu-usuario.github.io/ml-heroes/)**
+👉 **[Ver Demo en Vivo](https://spay2024.github.io/Mlhero/)**
 
 ## 🖼️ Capturas de Pantalla
 
