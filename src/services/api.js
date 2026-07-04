@@ -1,4 +1,4 @@
-const API_URL = 'https://api-ml-0pw4.onrender.com/api/heroes';
+const API_URL = 'https://api-mlbb.onrender.com/api/heroes';
 
 export const fetchHeroes = async () => {
   try {
