@@ -1,26 +1,102 @@
-const API_URL = 'https://api-ml-0c18.onrender.com/api/heroes';
+// src/api.js
+import { db } from '../firebase';
+import { ref, get } from 'firebase/database';
 
+// ============================================================
+// MAPEO DE ROLES: inglés → español
+// ============================================================
+const ROLE_TRANSLATIONS = {
+  'Tank': 'Tanque',
+  'Fighter': 'Luchador',
+  'Assassin': 'Asesino',
+  'Mage': 'Mago',
+  'Marksman': 'Tirador',
+  'Support': 'Soporte'
+};
+
+const translateRole = (role) => {
+  return ROLE_TRANSLATIONS[role] || role;
+};
+
+// ============================================================
+// CACHE
+// ============================================================
+let heroesCache = null;
+
+// ============================================================
+// FETCH HEROES DESDE FIREBASE
+// ============================================================
 export const fetchHeroes = async () => {
+  if (heroesCache) return heroesCache;
+
   try {
-    const response = await fetch(API_URL);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
+    const snapshot = await get(ref(db, 'mlbb/heroes-detailed'));
     
-    // Procesar datos
-    return data.map(hero => ({
-      ...hero,
-      winRateNumber: parseWinRate(hero.winRate),
-      rol: Array.isArray(hero.rol) ? hero.rol : [hero.rol].filter(Boolean)
-    }));
+    if (!snapshot.exists()) {
+      console.warn('No hay datos en mlbb/heroes-detailed');
+      return getSampleData();
+    }
+
+    const data = snapshot.val();
+    const heroesArray = Array.isArray(data)
+      ? data.filter(Boolean)
+      : Object.values(data).filter(Boolean);
+
+    // Transformar los datos de Firebase al formato que usa tu app
+    const heroes = heroesArray.map((hero, index) => {
+      const info = hero.data?.hero?.data || {};
+      const detail = hero.detail || {};
+      const stats = detail.stats || {};
+      const relations = hero.data?.relation || {};
+
+      // Convertir las skills al formato que usa tu app
+      const skills = (detail.skills || []).map(skill => ({
+        nombre: skill.type || 'Passive',
+        descripcion: skill.description || '',
+        imagen: '' // Firebase no tiene la imagen de la skill
+      }));
+
+      // Extraer los IDs de counters (strong) y convertirlos a imágenes si es posible
+      const strongIds = relations.strong?.target_hero_id || [];
+      const weakIds = relations.weak?.target_hero_id || [];
+      const assistIds = relations.assist?.target_hero_id || [];
+
+      return {
+        id: hero.data?.hero_id || index,
+        nombre: info.name || detail.name || `Hero ${index}`,
+        rol: detail.role ? [translateRole(detail.role)] : ['Desconocido'],
+        winRate: stats.winRate || '0%',
+        pickRate: stats.pickRate || '0%',
+        banRate: stats.banRate || '0%',
+        imagen: info.smallmap || '',
+        icon: info.head || '',
+        guia: '', // No tenemos guía
+        lore: detail.lore || '',
+        combos: detail.combos || [],
+        counters: strongIds,           // IDs de héroes fuertes contra este
+        weakAgainst: weakIds,          // IDs de héroes débiles contra este
+        assists: assistIds,            // IDs de héroes que asisten bien
+        skills: skills,
+        winRateNumber: parseWinRate(stats.winRate)
+      };
+    });
+
+    // Ordenar alfabéticamente
+    heroes.sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+    heroesCache = heroes;
+    console.log(`✅ ${heroes.length} héroes cargados desde Firebase`);
+    return heroes;
+
   } catch (error) {
-    console.error('Error fetching heroes:', error);
-    // Retornar datos de ejemplo como fallback
+    console.error('❌ Error fetching heroes from Firebase:', error);
     return getSampleData();
   }
 };
 
+// ============================================================
+// UTILIDADES
+// ============================================================
 const parseWinRate = (winRate) => {
   if (!winRate) return 0;
   const match = winRate.toString().match(/(\d+\.?\d*)/);
@@ -33,47 +109,34 @@ export const getRandomHero = (heroes) => {
   return heroes[randomIndex];
 };
 
+// ============================================================
+// SAMPLE DATA (fallback por si Firebase falla)
+// ============================================================
 const getSampleData = () => {
   return [
     {
-      id: 22,
+      id: 130,
       nombre: "Obsidia",
       rol: ["Tirador"],
-      winRate: "51.08%",
-      imagen: "https://akmweb.youngjoygame.com/web/svnres/img/mlbb/homepage_2_1_18/100_92bcc9ad2c4c8165a888d34f086a4d28.png",
-      icon: "https://akmweb.youngjoygame.com/web/gms/image/025c69a764924f4bac526a2662f1a0b9.png",
-      guia: "https://akmweb.youngjoygame.com/web/gms/image/0c5f86cf0aeef2f35f4693b8840e0949.jpg",
-      counters: [
-        "https://akmweb.youngjoygame.com/web/svnres/img/mlbb/homepage/100_b4a5e537894bdc00787e80e4d3ada5dd.png",
-        "https://akmweb.youngjoygame.com/web/svnres/img/mlbb/homepage/100_6abf0c552b59b8ca4cbc1af3662ef176.png",
-        "https://akmweb.youngjoygame.com/web/svnres/img/mlbb/homepage/100_3391df36d6dcc54dd1c417098e15ec59.png",
-        "https://akmweb.youngjoygame.com/web/svnres/img/mlbb/homepage/100_9cc074562291a02644a0ddae28eeaa42.png",
-        "https://akmweb.youngjoygame.com/web/svnres/img/mlbb/homepage/100_9012ee9f73fbb4db4e1953e5fb5172e1.png"
-      ],
+      winRate: "53.63%",
+      pickRate: "2.26%",
+      banRate: "16.76%",
+      imagen: "https://akmweb.youngjoygame.com/web/svnres/img/test/homepage_2_2_16_1232_1/100_9c3daef5625bfade5c4cb8a219845dd3.png",
+      icon: "https://akmweb.youngjoygame.com/web/svnres/img/test/homepage_2_2_16_1232_1/100_92bcc9ad2c4c8165a888d34f086a4d28.png",
+      guia: "",
+      lore: "The ancient Sovereign of the Abyss, risen from ruin...",
+      combos: [],
+      counters: [],
+      weakAgainst: [],
+      assists: [],
       skills: [
         {
           nombre: "Buff",
-          descripcion: "Regreso al hueso",
-          imagen: "https://akmweb.youngjoygame.com/web/svnres/img/mlbb/homepage_2_1_18/100_636c671e6ea7c9fd89e992c42fb9f4dc.png"
-        },
-        {
-          nombre: "AOE",
-          descripcion: "Aguja de hueso abisal",
-          imagen: "https://akmweb.youngjoygame.com/web/svnres/img/mlbb/homepage_2_1_18/100_6a6cfd77d892164ae8fbb98819a7233b.png"
-        },
-        {
-          nombre: "Speed Up",
-          descripcion: "Fusion de sombra fantasma",
-          imagen: "https://akmweb.youngjoygame.com/web/svnres/img/mlbb/homepage_2_1_18/100_27b8bf74b5f22a09a7ae1e4d0c69c056.png"
-        },
-        {
-          nombre: "CC",
-          descripcion: "La caza del hueso",
-          imagen: "https://akmweb.youngjoygame.com/web/svnres/img/mlbb/homepage_2_1_18/100_4b023cbf620869d7596b5e87e467c7c8.png"
+          descripcion: "Obsidia gains Bone Energy whenever she deals damage...",
+          imagen: ""
         }
       ],
-      linea: "",
-      winRateNumber: 51.08
+      winRateNumber: 53.63
     }
   ];
 };
