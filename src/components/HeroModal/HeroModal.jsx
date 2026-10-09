@@ -133,29 +133,32 @@ const HeroModal = ({ hero, onClose }) => {
               </div>
             )}
             
-            {/* Tab Counters */}
-            {activeTab === 'counters' && hero.counters?.length > 0 && (
-              <div className="tab-pane counters-tab">
-                <h3>Counters</h3>
-                <p className="counters-description">
-                  Estos héroes son efectivos contra {hero.nombre}
-                </p>
-                <div className="counters-grid">
-                  {hero.counters.slice(0, 6).map((counter, index) => (
-                    <div key={index} className="counter-card">
-                      <div className="counter-img-container">
-                        <img src={counter} alt={`Counter ${index + 1}`} />
-                        <span className="counter-badge">{index + 1}</span>
-                      </div>
-                      <div className="counter-info">
-                        <h4>Counter {index + 1}</h4>
-                        <p>Efectivo contra {hero.nombre}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+           {/* Tab Counters */}
+{activeTab === 'counters' && hero.counters?.length > 0 && (
+  <div className="tab-pane counters-tab">
+    <h3>Counters</h3>
+    <p className="counters-description">
+      Estos héroes son efectivos contra {hero.nombre}
+    </p>
+    <div className="counters-grid">
+      {hero.counters.slice(0, 6).map((counter, index) => (
+        <div key={counter.id || index} className="counter-card">
+          <div className="counter-img-container">
+            <img 
+              src={counter.imagen} 
+              alt={counter.nombre || `Counter ${index + 1}`} 
+            />
+            <span className="counter-badge">{index + 1}</span>
+          </div>
+          <div className="counter-info">
+            <h4>{counter.nombre || `Counter ${index + 1}`}</h4>
+            <p>Efectivo contra {hero.nombre}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
             
             {/* Tab Información */}
             {activeTab === 'info' && (
