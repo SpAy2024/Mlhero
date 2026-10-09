@@ -42,24 +42,62 @@ export const fetchHeroes = async () => {
       ? data.filter(Boolean)
       : Object.values(data).filter(Boolean);
 
-    // Transformar los datos de Firebase al formato que usa tu app
+    // ============================================================
+    // PRIMERA PASADA: Crear un mapa de ID → héroe para búsquedas rápidas
+    // ============================================================
+    const heroesMap = new Map();
+    heroesArray.forEach(h => {
+      const hid = h.data?.hero_id;
+      const info = h.data?.hero?.data || {};
+      const detail = h.detail || {};
+      const stats = detail.stats || {};
+      
+      if (hid) {
+        heroesMap.set(hid, {
+          id: hid,
+          nombre: info.name || detail.name || `Hero ${hid}`,
+          rol: detail.role ? [translateRole(detail.role)] : ['Desconocido'],
+          imagen: info.smallmap || '',
+          icon: info.head || '',
+          winRate: stats.winRate || '0%',
+          pickRate: stats.pickRate || '0%',
+          banRate: stats.banRate || '0%'
+        });
+      }
+    });
+
+    // ============================================================
+    // SEGUNDA PASADA: Transformar cada héroe con counters como objetos
+    // ============================================================
     const heroes = heroesArray.map((hero, index) => {
       const info = hero.data?.hero?.data || {};
       const detail = hero.detail || {};
       const stats = detail.stats || {};
       const relations = hero.data?.relation || {};
 
-      // Convertir las skills al formato que usa tu app
+      // Convertir las skills
       const skills = (detail.skills || []).map(skill => ({
         nombre: skill.type || 'Passive',
         descripcion: skill.description || '',
-        imagen: '' // Firebase no tiene la imagen de la skill
+        imagen: ''
       }));
 
-      // Extraer los IDs de counters (strong) y convertirlos a imágenes si es posible
+      // ✅ Convertir IDs de counters a objetos completos de héroe
       const strongIds = relations.strong?.target_hero_id || [];
       const weakIds = relations.weak?.target_hero_id || [];
       const assistIds = relations.assist?.target_hero_id || [];
+
+      const counters = strongIds
+        .map(id => heroesMap.get(id))
+        .filter(Boolean);
+
+      const weakAgainst = weakIds
+        .map(id => heroesMap.get(id))
+        .filter(Boolean);
+
+      const assists = assistIds
+        .map(id => heroesMap.get(id))
+        .filter(Boolean);
 
       return {
         id: hero.data?.hero_id || index,
@@ -70,12 +108,12 @@ export const fetchHeroes = async () => {
         banRate: stats.banRate || '0%',
         imagen: info.smallmap || '',
         icon: info.head || '',
-        guia: '', // No tenemos guía
+        guia: '',
         lore: detail.lore || '',
         combos: detail.combos || [],
-        counters: strongIds,           // IDs de héroes fuertes contra este
-        weakAgainst: weakIds,          // IDs de héroes débiles contra este
-        assists: assistIds,            // IDs de héroes que asisten bien
+        counters: counters,        // ✅ Objetos con id, nombre, imagen, etc.
+        weakAgainst: weakAgainst,  // ✅ Objetos
+        assists: assists,          // ✅ Objetos
         skills: skills,
         winRateNumber: parseWinRate(stats.winRate)
       };
