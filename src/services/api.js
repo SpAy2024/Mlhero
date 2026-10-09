@@ -43,9 +43,10 @@ export const fetchHeroes = async () => {
       : Object.values(data).filter(Boolean);
 
     // ============================================================
-    // PRIMERA PASADA: Crear un mapa de ID → héroe para búsquedas rápidas
+    // PASO 1: Crear un mapa de ID → héroe para búsquedas rápidas
     // ============================================================
     const heroesMap = new Map();
+    
     heroesArray.forEach(h => {
       const hid = h.data?.hero_id;
       const info = h.data?.hero?.data || {};
@@ -67,7 +68,7 @@ export const fetchHeroes = async () => {
     });
 
     // ============================================================
-    // SEGUNDA PASADA: Transformar cada héroe con counters como objetos
+    // PASO 2: Transformar cada héroe con counters como objetos
     // ============================================================
     const heroes = heroesArray.map((hero, index) => {
       const info = hero.data?.hero?.data || {};
@@ -82,11 +83,12 @@ export const fetchHeroes = async () => {
         imagen: ''
       }));
 
-      // ✅ Convertir IDs de counters a objetos completos de héroe
+      // Obtener los IDs de las relaciones
       const strongIds = relations.strong?.target_hero_id || [];
       const weakIds = relations.weak?.target_hero_id || [];
       const assistIds = relations.assist?.target_hero_id || [];
 
+      // ✅ Convertir IDs a objetos completos de héroe
       const counters = strongIds
         .map(id => heroesMap.get(id))
         .filter(Boolean);
@@ -111,9 +113,9 @@ export const fetchHeroes = async () => {
         guia: '',
         lore: detail.lore || '',
         combos: detail.combos || [],
-        counters: counters,        // ✅ Objetos con id, nombre, imagen, etc.
-        weakAgainst: weakAgainst,  // ✅ Objetos
-        assists: assists,          // ✅ Objetos
+        counters: counters,        // ✅ Array de objetos {id, nombre, imagen, ...}
+        weakAgainst: weakAgainst,  // ✅ Array de objetos
+        assists: assists,          // ✅ Array de objetos
         skills: skills,
         winRateNumber: parseWinRate(stats.winRate)
       };
