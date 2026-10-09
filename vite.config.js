@@ -1,11 +1,11 @@
-import { defineConfig } from "vite"
-import react from "@vitejs/plugin-react"
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: "./",  // Para GitHub Pages desde raíz
+  base: '/Mlhero/',  // ✅ Correcto para GitHub Pages
   build: {
-    outDir: "docs",
+    outDir: 'dist',  // ✅ Debe coincidir con el workflow
     sourcemap: false,
     rollupOptions: {
       output: {
@@ -18,4 +18,4 @@ export default defineConfig({
   server: {
     port: 3000
   }
-})
+});
