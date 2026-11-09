@@ -70,56 +70,70 @@ export const fetchHeroes = async () => {
     // ============================================================
     // PASO 2: Transformar cada héroe con counters como objetos
     // ============================================================
-    const heroes = heroesArray.map((hero, index) => {
-      const info = hero.data?.hero?.data || {};
-      const detail = hero.detail || {};
-      const stats = detail.stats || {};
-      const relations = hero.data?.relation || {};
+    // ============================================================
+// PASO 2: Transformar cada héroe con counters como objetos
+// ============================================================
+const heroes = heroesArray.map((hero, index) => {
+  const info = hero.data?.hero?.data || {};
+  const detail = hero.detail || {};
+  const stats = detail.stats || {};
+  const relations = hero.data?.relation || {};
 
-      // Convertir las skills
-      const skills = (detail.skills || []).map(skill => ({
-        nombre: skill.type || 'Passive',
-        descripcion: skill.description || '',
-        imagen: ''
-      }));
+  // ✅ Obtener el poster desde múltiples fuentes
+  const poster = info.smallmap || detail.poster || '';
+  const icon = info.head || detail.roleIcon || '';
 
-      // Obtener los IDs de las relaciones
-      const strongIds = relations.strong?.target_hero_id || [];
-      const weakIds = relations.weak?.target_hero_id || [];
-      const assistIds = relations.assist?.target_hero_id || [];
+  // ✅ Obtener el nombre desde múltiples fuentes
+  const nombre = info.name || detail.name || `Hero ${index}`;
 
-      // ✅ Convertir IDs a objetos completos de héroe
-      const counters = strongIds
-        .map(id => heroesMap.get(id))
-        .filter(Boolean);
+  // ✅ Obtener el rol desde múltiples fuentes
+  const rolRaw = detail.role || info.role || 'Unknown';
+  const rol = [translateRole(rolRaw)];
 
-      const weakAgainst = weakIds
-        .map(id => heroesMap.get(id))
-        .filter(Boolean);
+  // ✅ Adaptar las skills (soporta type/description y nombre/descripcion)
+  const skills = (detail.skills || []).map(skill => ({
+    nombre: skill.type || skill.nombre || 'Passive',
+    descripcion: skill.description || skill.descripcion || '',
+    imagen: skill.imagen || ''
+  }));
 
-      const assists = assistIds
-        .map(id => heroesMap.get(id))
-        .filter(Boolean);
+  // Obtener los IDs de las relaciones
+  const strongIds = relations.strong?.target_hero_id || [];
+  const weakIds = relations.weak?.target_hero_id || [];
+  const assistIds = relations.assist?.target_hero_id || [];
 
-      return {
-        id: hero.data?.hero_id || index,
-        nombre: info.name || detail.name || `Hero ${index}`,
-        rol: detail.role ? [translateRole(detail.role)] : ['Desconocido'],
-        winRate: stats.winRate || '0%',
-        pickRate: stats.pickRate || '0%',
-        banRate: stats.banRate || '0%',
-        imagen: info.smallmap || '',
-        icon: info.head || '',
-        guia: '',
-        lore: detail.lore || '',
-        combos: detail.combos || [],
-        counters: counters,        // ✅ Array de objetos {id, nombre, imagen, ...}
-        weakAgainst: weakAgainst,  // ✅ Array de objetos
-        assists: assists,          // ✅ Array de objetos
-        skills: skills,
-        winRateNumber: parseWinRate(stats.winRate)
-      };
-    });
+  // ✅ Convertir IDs a objetos completos de héroe
+  const counters = strongIds
+    .map(id => heroesMap.get(id))
+    .filter(Boolean);
+
+  const weakAgainst = weakIds
+    .map(id => heroesMap.get(id))
+    .filter(Boolean);
+
+  const assists = assistIds
+    .map(id => heroesMap.get(id))
+    .filter(Boolean);
+
+  return {
+    id: hero.data?.hero_id || index,
+    nombre: nombre,
+    rol: rol,
+    winRate: stats.winRate || '0%',
+    pickRate: stats.pickRate || '0%',
+    banRate: stats.banRate || '0%',
+    imagen: poster,   // ✅ Poster (smallmap o poster)
+    icon: icon,       // ✅ Icono (head o roleIcon)
+    guia: '',
+    lore: detail.lore || '',
+    combos: detail.combos || [],
+    counters: counters,
+    weakAgainst: weakAgainst,
+    assists: assists,
+    skills: skills,
+    winRateNumber: parseWinRate(stats.winRate)
+  };
+});
 
     // Ordenar alfabéticamente
     heroes.sort((a, b) => a.nombre.localeCompare(b.nombre));
