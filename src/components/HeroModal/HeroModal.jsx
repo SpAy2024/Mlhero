@@ -33,7 +33,7 @@ const HeroModal = ({ hero, onClose }) => {
 
   const tabs = [
     { id: 'skills', label: 'Habilidades', icon: <FaBolt />, show: hero.skills?.length > 0 },
-    { id: 'counters', label: 'Counters', icon: <FaSkullCrossbones />, show: hero.counters?.length > 0 },
+   { id: 'counters', label: 'Counters', icon: <FaSkullCrossbones />, show: true },
     { id: 'info', label: 'Información', icon: <FaInfoCircle />, show: true }
   ].filter(tab => tab.show);
 
@@ -113,50 +113,54 @@ const HeroModal = ({ hero, onClose }) => {
                 <h3>Habilidades</h3>
                 <div className="skills-grid">
                   {hero.skills.map((skill, index) => (
-                    <div key={index} className="skill-card">
-                      <div className="skill-header">
-                        <div className="skill-icon">
-                          <img src={skill.imagen} alt={skill.nombre} />
-                          <span className="skill-number">{index + 1}</span>
-                        </div>
-                        <div className="skill-info">
-                          <h4>{skill.nombre || `Habilidad ${index + 1}`}</h4>
-                          <span className="skill-type">{getSkillType(skill.nombre)}</span>
-                        </div>
-                      </div>
-                      <p className="skill-description">
-                        {skill.descripcion || 'Sin descripción disponible'}
-                      </p>
-                    </div>
-                  ))}
+  <div key={index} className="skill-card">
+    <div className="skill-header">
+      <div className="skill-icon">
+        {/* ✅ Solo mostrar la imagen si existe */}
+        {skill.imagen && (
+          <img src={skill.imagen} alt={skill.nombre} />
+        )}
+        <span className="skill-number">{index + 1}</span>
+      </div>
+      <div className="skill-info">
+        <h4>{skill.nombre || `Habilidad ${index + 1}`}</h4>
+        <span className="skill-type">{getSkillType(skill.nombre)}</span>
+      </div>
+    </div>
+    <p className="skill-description">
+      {skill.descripcion || 'Sin descripción disponible'}
+    </p>
+  </div>
+))}
                 </div>
               </div>
             )}
             
            {/* Tab Counters */}
-{activeTab === 'counters' && hero.counters?.length > 0 && (
+{activeTab === 'counters' && (
   <div className="tab-pane counters-tab">
     <h3>Counters</h3>
-    <p className="counters-description">
-      Estos héroes son efectivos contra {hero.nombre}
-    </p>
-    <div className="counters-grid">
-      {hero.counters.slice(0, 6).map((counter, index) => (
-        <div key={counter.id || index} className="counter-card">
-          <div className="counter-img-container">
-            <img 
-              src={counter.imagen} 
-              alt={counter.nombre || `Counter ${index + 1}`} 
-            />
-            <span className="counter-badge">{index + 1}</span>
-          </div>
-          <div className="counter-info">
-            <h4>{counter.nombre || `Counter ${index + 1}`}</h4>
-            <p>Efectivo contra {hero.nombre}</p>
-          </div>
+    {hero.counters && hero.counters.length > 0 ? (
+      <>
+        <p className="counters-description">Estos héroes son efectivos contra {hero.nombre}</p>
+        <div className="counters-grid">
+          {hero.counters.slice(0, 6).map((counter, index) => (
+            <div key={counter.id || index} className="counter-card">
+              <div className="counter-img-container">
+                <img src={counter.imagen} alt={counter.nombre || `Counter ${index + 1}`} />
+                <span className="counter-badge">{index + 1}</span>
+              </div>
+              <div className="counter-info">
+                <h4>{counter.nombre || `Counter ${index + 1}`}</h4>
+                <p>Efectivo contra {hero.nombre}</p>
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
+      </>
+    ) : (
+      <p className="no-counters">No hay información de counters para este héroe.</p>
+    )}
   </div>
 )}
             
