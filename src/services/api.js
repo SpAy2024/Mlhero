@@ -103,18 +103,37 @@ const heroes = heroesArray.map((hero, index) => {
   const assistIds = relations.assist?.target_hero_id || [];
 
   // ✅ Convertir IDs a objetos completos de héroe
-  const counters = strongIds
-    .map(id => heroesMap.get(id))
-    .filter(Boolean);
+ const counters = strongIds
+  .map(id => {
+    // Si es un número, buscar en el heroesMap (formato del bot)
+    if (typeof id === 'number') {
+      return heroesMap.get(id);
+    }
+    // Si es un string (URL), crear un objeto simple
+    if (typeof id === 'string' && id.startsWith('http')) {
+      return { id: id, nombre: 'Counter', imagen: id };
+    }
+    return null;
+  })
+  .filter(Boolean);
 
-  const weakAgainst = weakIds
-    .map(id => heroesMap.get(id))
-    .filter(Boolean);
+const weakAgainst = weakIds
+  .map(id => {
+    if (typeof id === 'number') return heroesMap.get(id);
+    if (typeof id === 'string' && id.startsWith('http')) return { id, nombre: 'Débil', imagen: id };
+    return null;
+  })
+  .filter(Boolean);
 
-  const assists = assistIds
-    .map(id => heroesMap.get(id))
-    .filter(Boolean);
+const assists = assistIds
+  .map(id => {
+    if (typeof id === 'number') return heroesMap.get(id);
+    if (typeof id === 'string' && id.startsWith('http')) return { id, nombre: 'Asistencia', imagen: id };
+    return null;
+  })
+  .filter(Boolean);
 
+  
   return {
     id: hero.data?.hero_id || index,
     nombre: nombre,
