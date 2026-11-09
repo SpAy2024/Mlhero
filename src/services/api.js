@@ -98,9 +98,10 @@ const heroes = heroesArray.map((hero, index) => {
   }));
 
   // Obtener los IDs de las relaciones
-  const strongIds = relations.strong?.target_hero_id || [];
-  const weakIds = relations.weak?.target_hero_id || [];
-  const assistIds = relations.assist?.target_hero_id || [];
+// ✅ Leer counters desde detail.counters (Api_ML) o relations (bot)
+const strongIds = detail.counters || relations.strong?.target_hero_id || [];
+const weakIds = detail.weakAgainst || relations.weak?.target_hero_id || [];
+const assistIds = detail.assists || relations.assist?.target_hero_id || [];
 
   // ✅ Convertir IDs a objetos completos de héroe
  const counters = strongIds
